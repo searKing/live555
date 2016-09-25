@@ -108,17 +108,21 @@ protected:
 
 protected:
   RTPInterface fRTPInterface;
-  unsigned char fRTPPayloadType;
+  unsigned char fRTPPayloadType;//RTP负载数据类型
   unsigned fPacketCount, fOctetCount, fTotalOctetCount /*incl RTP hdr*/;
+  // PTS in 系统时间
+  // fInitialPresentationTime   : 系统接收到的第一个pts
+  // fMostRecentPresentationTime: 最新接收到的pts
   struct timeval fTotalOctetCountStartTime, fInitialPresentationTime, fMostRecentPresentationTime;
   u_int32_t fCurrentTimestamp;
-  u_int16_t fSeqNo;
+  u_int16_t fSeqNo;//RTP SN
 
 private:
   // redefined virtual functions:
   virtual Boolean isRTPSink() const;
 
 private:
+  // fSSRC  : RTP SSRC字段
   u_int32_t fSSRC, fTimestampBase;
   unsigned fTimestampFrequency;
   Boolean fNextTimestampHasBeenPreset;

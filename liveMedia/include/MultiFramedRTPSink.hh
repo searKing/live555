@@ -119,16 +119,17 @@ private:
   OutPacketBuffer* fOutBuf;
 
   Boolean fNoFramesLeft;
-  unsigned fNumFramesUsedSoFar;
-  unsigned fCurFragmentationOffset;
-  Boolean fPreviousFrameEndedFragmentation;
+  unsigned fNumFramesUsedSoFar; // 一个RTP数据包中的有效帧数
+  unsigned fCurFragmentationOffset;//当前rtp中可写分片可写偏移，即当前rtp中所有已加入的分片字节数
+  //表示RTP负载中已经存在的上一个帧的最后一块分片数据，默认为false,即rtp中没有完整帧
+  Boolean fPreviousFrameEndedFragmentation;//确认之前帧(尚在RTP中，且尚未发送)分片结束
 
-  Boolean fIsFirstPacket;
-  struct timeval fNextSendTime;
-  unsigned fTimestampPosition;
-  unsigned fSpecialHeaderPosition;
-  unsigned fSpecialHeaderSize; // size in bytes of any special header used
-  unsigned fCurFrameSpecificHeaderPosition;
+  Boolean fIsFirstPacket; // 是否是第一个RTP数据包
+  struct timeval fNextSendTime;//预算下一rtp包的发送绝对时间
+  unsigned fTimestampPosition;// TimeStamp在输出缓冲中的位置,这个是因为时间戳是在后面填充的，所以这边先保存下
+  unsigned fSpecialHeaderPosition;// 可选字段在输出缓冲的位置，原因和时间戳一样
+  unsigned fSpecialHeaderSize; // 可选数据的大小 size in bytes of any special header used
+  unsigned fCurFrameSpecificHeaderPosition;//RTP数据负载的数据帧头，不是RTP的头部
   unsigned fCurFrameSpecificHeaderSize; // size in bytes of cur frame-specific header
   unsigned fTotalFrameSpecificHeaderSizes; // size of all frame-specific hdrs in pkt
   unsigned fOurMaxPacketSize;

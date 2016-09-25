@@ -29,7 +29,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // RTP packet.  I.e., we implement fragmentation in this separate "H264or5Fragmenter"
 // class, rather than in "H264or5VideoRTPSink".
 // (Note: This class should be used only by "H264or5VideoRTPSink", or a subclass.)
-
+// 用于H264或H265的H264 NALU分片
 class H264or5Fragmenter: public FramedFilter {
 public:
   H264or5Fragmenter(int hNumber, UsageEnvironment& env, FramedSource* inputSource,
@@ -54,7 +54,7 @@ private:
   void reset();
 
 private:
-  int fHNumber;
+  int fHNumber;//264:H264 265:H265
   unsigned fInputBufferSize;
   unsigned fMaxOutputPacketSize;
   unsigned char* fInputBuffer;

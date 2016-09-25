@@ -74,6 +74,7 @@ RTPSink::~RTPSink() {
     // its 'groupsock' is being shared with something else that does background read handling).
 }
 
+// 系统时间增量转RTP TimeStamp
 u_int32_t RTPSink::convertToRTPTimestamp(struct timeval tv) {
   // Begin by converting from "struct timeval" units to RTP timestamp units:
   u_int32_t timestampIncrement = (fTimestampFrequency*tv.tv_sec);
@@ -133,6 +134,7 @@ char const* RTPSink::sdpMediaType() const {
   // default SDP media (m=) type, unless redefined by subclasses
 }
 
+// 动态媒体属性行 a=rtpmap:净荷类型 编码名称/时标频率单位/通道数
 char* RTPSink::rtpmapLine() const {
   if (rtpPayloadType() >= 96) { // the payload format type is dynamic
     char* encodingParamsPart;
@@ -159,6 +161,7 @@ char* RTPSink::rtpmapLine() const {
   }
 }
 
+// a=fmtp:
 char const* RTPSink::auxSDPLine() {
   return NULL; // by default
 }

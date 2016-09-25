@@ -78,6 +78,7 @@ public:
   static unsigned maxSize;
   static void increaseMaxSizeTo(unsigned newMaxSize) { if (newMaxSize > OutPacketBuffer::maxSize) OutPacketBuffer::maxSize = newMaxSize; }
 
+  // 当前输出缓冲中可写指针
   unsigned char* curPtr() const {return &fBuf[fPacketStart + fCurOffset];}
   unsigned totalBytesAvailable() const {
     return fLimit - (fPacketStart + fCurOffset);
@@ -86,6 +87,7 @@ public:
   unsigned char* packet() const {return &fBuf[fPacketStart];}
   unsigned curPacketSize() const {return fCurOffset;}
 
+  // 轮空从输出缓冲中读出数据
   void increment(unsigned numBytes) {fCurOffset += numBytes;}
 
   void enqueue(unsigned char const* from, unsigned numBytes);
@@ -101,9 +103,11 @@ public:
   Boolean wouldOverflow(unsigned numBytes) const {
     return (fCurOffset+numBytes) > fMax;
   }
+  //获取当前这么多数据如果写入，会溢出的字节数
   unsigned numOverflowBytes(unsigned numBytes) const {
     return (fCurOffset+numBytes) - fMax;
   }
+  // numBytes:RTP包大小
   Boolean isTooBigForAPacket(unsigned numBytes) const {
     return numBytes > fMax;
   }
@@ -124,10 +128,21 @@ public:
   void resetOverflowData() { fOverflowDataOffset = fOverflowDataSize = 0; }
 
 private:
+  // fPacketStart   : 输出缓冲有效数据首地址
+  // fCurOffset     : 输出缓冲中当前可写位置，即已写字节数
+  // fPreferred     : 理想数据报的单个大小
+  // fMax           : 允许接收的最大数据报的单个大小
+  // fLimit         : 输出缓冲缓冲区总大小 = fMax*maxBufferSize
   unsigned fPacketStart, fCurOffset, fPreferred, fMax, fLimit;
+  // fBuf           : 输出缓冲首地址
   unsigned char* fBuf;
 
+  // 用于帧分片，即帧超过设定的RTP数据报的最大大小是，需要分片读出发送
+  // fOverflowDataOffset    : 输出缓冲溢出有效数据相对于fPacketStart的偏移首地址
+  //                        : 也就是在输出缓冲区的首地址为: fBuf + fPacketStart + fOverflowDataOffset
+  // fOverflowDataSize      : 有效溢出数据的大小
   unsigned fOverflowDataOffset, fOverflowDataSize;
+  // 同一帧的不同分片的时间戳保持不变
   struct timeval fOverflowPresentationTime;
   unsigned fOverflowDurationInMicroseconds;
 };

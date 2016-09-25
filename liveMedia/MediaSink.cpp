@@ -129,6 +129,7 @@ OutPacketBuffer::~OutPacketBuffer() {
   delete[] fBuf;
 }
 
+// 向输出缓冲末尾追加写入数据
 void OutPacketBuffer::enqueue(unsigned char const* from, unsigned numBytes) {
   if (numBytes > totalBytesAvailable()) {
 #ifdef DEBUG
@@ -137,15 +138,18 @@ void OutPacketBuffer::enqueue(unsigned char const* from, unsigned numBytes) {
     numBytes = totalBytesAvailable();
   }
 
+  // 防止重复写入
   if (curPtr() != from) memmove(curPtr(), from, numBytes);
   increment(numBytes);
 }
 
+// 向输出缓冲末尾追加写入4B数据，且从主机字节序转为网络字节序
 void OutPacketBuffer::enqueueWord(u_int32_t word) {
   u_int32_t nWord = htonl(word);
   enqueue((unsigned char*)&nWord, 4);
 }
 
+// 向输出缓冲指定位置覆盖插入数据，且更新输出缓冲有效字节数
 void OutPacketBuffer::insert(unsigned char const* from, unsigned numBytes,
 			     unsigned toPosition) {
   unsigned realToPosition = fPacketStart + toPosition;
@@ -160,11 +164,13 @@ void OutPacketBuffer::insert(unsigned char const* from, unsigned numBytes,
   }
 }
 
+// 覆盖插入，主机字节数转网络字节序
 void OutPacketBuffer::insertWord(u_int32_t word, unsigned toPosition) {
   u_int32_t nWord = htonl(word);
   insert((unsigned char*)&nWord, 4, toPosition);
 }
 
+// 从输出缓存指定位置深度拷贝出内存，截断拷贝
 void OutPacketBuffer::extract(unsigned char* to, unsigned numBytes,
 			      unsigned fromPosition) {
   unsigned realFromPosition = fPacketStart + fromPosition;
@@ -175,13 +181,14 @@ void OutPacketBuffer::extract(unsigned char* to, unsigned numBytes,
 
   memmove(to, &fBuf[realFromPosition], numBytes);
 }
-
+// 从输出缓存指定位置深度拷贝4B，且网络字节序转为主机字节序
 u_int32_t OutPacketBuffer::extractWord(unsigned fromPosition) {
   u_int32_t nWord;
   extract((unsigned char*)&nWord, 4, fromPosition);
   return ntohl(nWord);
 }
 
+// 跳过指定字节数 
 void OutPacketBuffer::skipBytes(unsigned numBytes) {
   if (numBytes > totalBytesAvailable()) {
     numBytes = totalBytesAvailable();
@@ -200,13 +207,14 @@ void OutPacketBuffer
   fOverflowPresentationTime = presentationTime;
   fOverflowDurationInMicroseconds = durationInMicroseconds;
 }
-
+//将溢出分片数据追加写入输出缓冲，一般用于源给的数据太多，需要分片多次发送的情况
 void OutPacketBuffer::useOverflowData() {
   enqueue(&fBuf[fPacketStart + fOverflowDataOffset], fOverflowDataSize);
   fCurOffset -= fOverflowDataSize; // undoes increment performed by "enqueue"
   resetOverflowData();
 }
 
+// 输出有效数据缓冲索引向后跳过指定字节, 溢出数据量不变
 void OutPacketBuffer::adjustPacketStart(unsigned numBytes) {
   fPacketStart += numBytes;
   if (fOverflowDataOffset >= numBytes) {
@@ -217,6 +225,7 @@ void OutPacketBuffer::adjustPacketStart(unsigned numBytes) {
   }
 }
 
+// 输出有效数据缓冲索引向前跳过指定字节, 溢出数据量不变
 void OutPacketBuffer::resetPacketStart() {
   if (fOverflowDataSize > 0) {
     fOverflowDataOffset += fPacketStart;
